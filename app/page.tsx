@@ -1,3 +1,4 @@
+
 "use client";
 
 import * as React from "react";
@@ -30,7 +31,7 @@ const NAV = [
   { label: "Lista de espera", href: "#lista" },
 ];
 
-// Put photos in /public/vieg/ as 1.jpg ... 8.jpg
+// Put photos in /public/ as 1.png ... 13.png
 const GALLERY = [
   { src: "/1.png", name: "Peça 01", tag: "Vestuário" },
   { src: "/2.png", name: "Peça 02", tag: "Vestuário" },
@@ -40,7 +41,7 @@ const GALLERY = [
   { src: "/6.png", name: "Peça 06", tag: "Vestuário" },
   { src: "/7.png", name: "Peça 07", tag: "Vestuário" },
   { src: "/8.png", name: "Peça 08", tag: "Acessórios" },
-    { src: "/9.png", name: "Peça 05", tag: "Acessórios" },
+  { src: "/9.png", name: "Peça 05", tag: "Acessórios" },
   { src: "/10.png", name: "Peça 06", tag: "Vestuário" },
   { src: "/11.png", name: "Peça 07", tag: "Vestuário" },
   { src: "/12.png", name: "Peça 08", tag: "Acessórios" },
@@ -75,6 +76,7 @@ const reveal = {
 /* =========================================================
    SHARED PIECES
 ========================================================= */
+
 function InstagramIcon({ className }: { className?: string }) {
   return (
     <svg
@@ -582,7 +584,12 @@ function Waitlist() {
 ========================================================= */
 
 function Footer() {
-  const year = new Date().getFullYear();
+  // Avoid reading the current date during Client Component prerendering.
+  const [year, setYear] = React.useState(2026);
+
+  React.useEffect(() => {
+    setYear(new Date().getFullYear());
+  }, []);
 
   return (
     <footer className="relative bg-[#0d0d0f] text-white">
