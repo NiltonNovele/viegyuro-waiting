@@ -31,7 +31,6 @@ const NAV = [
   { label: "Lista de espera", href: "#lista" },
 ];
 
-// Automatically loads images 1.png to 30.png from /public
 const GALLERY = Array.from({ length: 30 }, (_, index) => {
   const number = index + 1;
 
@@ -256,7 +255,6 @@ function Header() {
 function Hero() {
   return (
     <section className="relative flex min-h-[100svh] flex-col justify-between pt-28 sm:pt-32">
-      {/* Soft colour glow */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute left-1/2 top-24 h-72 w-72 -translate-x-1/2 rounded-full opacity-[0.12] blur-[90px] sm:h-[28rem] sm:w-[28rem]"
@@ -315,7 +313,6 @@ function Hero() {
         </motion.div>
       </motion.div>
 
-      {/* Rolling carousel */}
       <motion.div
         initial={{ opacity: 0, y: 50 }}
         animate={{ opacity: 1, y: 0 }}
@@ -408,11 +405,12 @@ function Countdown() {
 }
 
 /* =========================================================
-   WAITLIST FORM
+   WAITLIST FORM + SUCCESS SCREEN
 ========================================================= */
 
 function WaitlistForm({ idSuffix }: { idSuffix: string }) {
   const [email, setEmail] = React.useState("");
+  const [submittedEmail, setSubmittedEmail] = React.useState("");
   const [status, setStatus] = React.useState<
     "idle" | "loading" | "done" | "error"
   >("idle");
@@ -420,48 +418,166 @@ function WaitlistForm({ idSuffix }: { idSuffix: string }) {
 
   const id = `email-${idSuffix}`;
 
-  const onSubmit = async (e: React.FormEvent) => {
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
     if (status === "loading") return;
 
+    const cleanEmail = email.trim();
+
+    // Basic email validation
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!emailPattern.test(cleanEmail)) {
+      setStatus("error");
+      setMessage("Introduz um endereço de email válido.");
+      return;
+    }
+
     setStatus("loading");
     setMessage("");
 
-    try {
-      const res = await fetch("/api/waitlist", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email }),
-      });
+    // Simulate a successful submission.
+    // No API or database connection is required for this display.
+    await new Promise((resolve) => setTimeout(resolve, 700));
 
-      const data = await res.json().catch(() => ({}));
+    setSubmittedEmail(cleanEmail);
+    setEmail("");
+    setStatus("done");
+  };
 
-      if (!res.ok) {
-        throw new Error(data.error || "Não foi possível guardar o email.");
-      }
-
-      setStatus("done");
-      setEmail("");
-    } catch (err) {
-      setStatus("error");
-      setMessage(err instanceof Error ? err.message : "Tenta novamente.");
-    }
+  const resetForm = () => {
+    setStatus("idle");
+    setSubmittedEmail("");
+    setMessage("");
+    setEmail("");
   };
 
   if (status === "done") {
     return (
       <motion.div
         role="status"
-        initial={{ opacity: 0, scale: 0.96 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.4, ease: EASE }}
-        className="flex items-center gap-3 rounded-2xl border border-black/10 bg-white px-5 py-4 text-sm font-semibold"
+        aria-live="polite"
+        initial={{ opacity: 0, y: 18, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.65, ease: EASE }}
+        className="relative w-full overflow-hidden rounded-3xl border border-black/[0.07] bg-white p-6 shadow-[0_15px_50px_rgba(0,0,0,0.07)] sm:p-8"
       >
-        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-black text-white">
-          <Check size={14} />
-        </span>
-        Já estás na lista. Avisamos-te assim que a Vieg Yuro chegar a Moçambique.
+        {/* Decorative accents */}
+        <div className="absolute right-0 top-0 flex h-1 w-full">
+          {ACCENT.map((color) => (
+            <span
+              key={color}
+              className="flex-1"
+              style={{ backgroundColor: color }}
+            />
+          ))}
+        </div>
+
+        <div className="flex flex-col items-center text-center">
+          {/* Animated success icon */}
+          <motion.div
+            initial={{ scale: 0, rotate: -25 }}
+            animate={{ scale: 1, rotate: 0 }}
+            transition={{
+              type: "spring",
+              stiffness: 200,
+              damping: 14,
+              delay: 0.15,
+            }}
+            className="relative mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-black text-white shadow-[0_8px_25px_rgba(0,0,0,0.18)]"
+          >
+            <motion.span
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ duration: 0.5, delay: 0.35 }}
+            >
+              <Check size={30} strokeWidth={2.5} />
+            </motion.span>
+
+            <motion.span
+              initial={{ opacity: 0, scale: 0.5 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.55, duration: 0.3 }}
+              className="absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white"
+              style={{ backgroundColor: ACCENT[0] }}
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-black" />
+            </motion.span>
+          </motion.div>
+
+          <motion.p
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25, duration: 0.5 }}
+            className="mb-3 flex items-center gap-2 text-[9px] font-bold uppercase tracking-[0.3em] text-black/40"
+          >
+            <AccentDots />
+            Inscrição concluída
+          </motion.p>
+
+          <motion.h3
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+            className="text-3xl font-black uppercase leading-[0.9] tracking-[-0.06em] sm:text-4xl"
+          >
+            Estás na
+            <span className="block text-black/25">lista!</span>
+          </motion.h3>
+
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4, duration: 0.5 }}
+            className="mt-5 max-w-sm text-sm leading-relaxed text-black/55"
+          >
+            Obrigado pelo teu interesse na Vieg Yuro. A tua inscrição foi
+            registada com sucesso. Estamos a preparar algo especial para
+            Moçambique.
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.5 }}
+            className="mt-6 w-full rounded-2xl border border-black/[0.07] bg-[#f7f7f5] p-4 text-left"
+          >
+            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-black/35">
+              Email inscrito
+            </p>
+            <p className="mt-2 break-all text-sm font-bold text-black">
+              {submittedEmail}
+            </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.65 }}
+            className="mt-6 flex flex-wrap items-center justify-center gap-2 text-[9px] font-bold uppercase tracking-[0.17em] text-black/35"
+          >
+            <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: ACCENT[0] }} />
+            Angola
+            <span className="text-black/15">/</span>
+            <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: ACCENT[1] }} />
+            Moçambique
+            <span className="text-black/15">/</span>
+            <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: ACCENT[2] }} />
+            Mundo
+          </motion.div>
+
+          <motion.button
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.75 }}
+            type="button"
+            onClick={resetForm}
+            className="mt-7 text-[10px] font-bold uppercase tracking-[0.18em] text-black/45 underline decoration-black/20 underline-offset-4 transition-colors hover:text-black"
+          >
+            Inscrever outro email
+          </motion.button>
+        </div>
       </motion.div>
     );
   }
@@ -478,22 +594,39 @@ function WaitlistForm({ idSuffix }: { idSuffix: string }) {
           type="email"
           required
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => {
+            setEmail(e.target.value);
+            if (status === "error") {
+              setStatus("idle");
+              setMessage("");
+            }
+          }}
           placeholder="O teu endereço de email"
           autoComplete="email"
-          className="block h-14 w-full min-w-0 flex-none rounded-2xl border border-black/10 bg-white px-5 text-base font-medium outline-none transition placeholder:text-sm placeholder:text-black/30 focus:border-black focus-visible:ring-2 focus-visible:ring-black/20 sm:h-14 sm:flex-1 sm:text-sm"
+          aria-invalid={status === "error"}
+          className={`block h-14 w-full min-w-0 flex-none rounded-2xl border bg-white px-5 text-base font-medium outline-none transition placeholder:text-sm placeholder:text-black/30 focus-visible:ring-2 focus-visible:ring-black/20 sm:h-14 sm:flex-1 sm:text-sm ${
+            status === "error"
+              ? "border-red-500 focus:border-red-500"
+              : "border-black/10 focus:border-black"
+          }`}
         />
 
         <motion.button
           whileTap={{ scale: 0.96 }}
           type="submit"
           disabled={status === "loading"}
-          className="inline-flex h-14 w-full shrink-0 items-center justify-center gap-2 rounded-2xl bg-black px-7 text-[11px] font-bold uppercase tracking-[0.18em] text-white transition-opacity disabled:opacity-60 sm:w-auto"
+          className="inline-flex h-14 w-full shrink-0 items-center justify-center gap-2 rounded-2xl bg-black px-7 text-[11px] font-bold uppercase tracking-[0.18em] text-white transition-opacity hover:bg-black/85 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto"
         >
           {status === "loading" ? (
-            <Loader2 size={16} className="animate-spin" />
+            <>
+              <Loader2 size={16} className="animate-spin" />
+              A processar
+            </>
           ) : (
-            "Entrar na lista"
+            <>
+              Entrar na lista
+              <ArrowUpRight size={15} />
+            </>
           )}
         </motion.button>
       </div>
@@ -731,7 +864,6 @@ function Waitlist() {
 ========================================================= */
 
 function Footer() {
-  // Avoid reading the current date during Client Component prerendering.
   const [year, setYear] = React.useState(2026);
 
   React.useEffect(() => {
