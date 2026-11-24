@@ -35,8 +35,13 @@ const NAV = [
 const GALLERY = Array.from({ length: 30 }, (_, index) => {
   const number = index + 1;
 
+  const extension =
+    number <= 13 ? "png" :
+    number <= 27 ? "jpg" :
+    "jpeg";
+
   return {
-    src: `/${number}.png`,
+    src: `/${number}.${extension}`,
     name: `Peça ${String(number).padStart(2, "0")}`,
     tag: "Colecção",
   };
